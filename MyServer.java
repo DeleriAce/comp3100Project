@@ -5,8 +5,8 @@ public class MyServer {
         try {
             ServerSocket ss = new ServerSocket(6666);
             Socket s = ss.accept(); //Establishes connection
-            DataInputStream dis = new DataInputStream(s.getInputStream());
-            String str = (String)dis.readUTF(); //Doesn't work with ds use printwriter instead
+            BufferedReader dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            String str = (String)dis.readLine(); //Doesn't work with ds use printwriter instead
             System.out.println("message= "+str);
             ss.close();
         } catch (Exception e) {
