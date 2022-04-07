@@ -3,6 +3,31 @@ import java.net.*;
 import java.util.ArrayList;
 
 public class MyClient {
+    public static String handshake(DataInputStream din, DataOutputStream dout){
+        String response = new String();
+        try {
+            // HELO
+            dout.write(("HELO\n").getBytes());
+            response = din.readLine();
+            dout.flush();
+            System.out.println("Response: " + response);
+            // Auth
+            String username = System.getProperty("user.name");
+            dout.write(("AUTH " + username+"\n").getBytes());
+            response = din.readLine();
+            System.out.println("Response: " + response);
+            dout.flush();
+
+            // REDY
+            dout.write(("REDY\n").getBytes());
+            response = din.readLine();
+            System.out.println("Response REDY: " + response);
+            dout.flush();
+        } catch (Exception e) {
+            System.out.println("Failed Handshake Protocol");
+        }
+        return response;
+    }
 
     public static ArrayList<ServerObj> largestServers(DataInputStream din, DataOutputStream dout){
         String response = "";
@@ -56,36 +81,20 @@ public class MyClient {
     }
     public static void main(String[] args) { // TO RUN SERVER USE COMMAND "./ds-server -c ../../configs/sample-configs/ds-sample-config01.xml -v all -n"
         try {
-            Socket s = new Socket("localhost", 50000); // Is this declared properly?
+            Socket s = new Socket("localhost", 50000);
             DataInputStream din = new DataInputStream(s.getInputStream());
             DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-
-
-            // HELO
-            dout.write(("HELO\n").getBytes());
             String response = new String();
-            response = din.readLine();
-            dout.flush();
-            System.out.println("Response: " + response);
-            // Auth
-            String username = System.getProperty("user.name");
-            dout.write(("AUTH " + username+"\n").getBytes());
-            response = din.readLine();
-            System.out.println("Response: " + response);
-            dout.flush();
 
-            // REDY
-            dout.write(("REDY\n").getBytes());
-            response = din.readLine();
-            System.out.println("Response REDY: " + response);
-            dout.flush();
+            // Run handshake protocol
+            response = handshake(din, dout);
 
             //Get List of Largest Servers
             ArrayList<ServerObj> listLargestServers = largestServers(din, dout);
             int count = 0;
             String[] job;
 
-            //Schedule jobs to largest Servers (Servers as Objects)
+            //Schedule jobs to largest Servers
             while(!response.contains("NONE")){
                 if(response.contains("JOBN")){
                     job = response.split(" ");
