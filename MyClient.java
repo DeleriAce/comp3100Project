@@ -4,12 +4,17 @@ import java.util.ArrayList;
 
 public class MyClient {
 
-    public static ArrayList<String> largestServers(DataInputStream din, DataOutputStream dout){
+    public static ArrayList<ServerObj> largestServers(DataInputStream din, DataOutputStream dout){
         ArrayList<String> serverList = new ArrayList<String>();
         ArrayList<String> largestServerList = new ArrayList<String>();
         String response = "";
         int numServers;
         String largestServer = "";
+
+
+        ArrayList<ServerObj> serverList2 = new ArrayList<ServerObj>();
+        ArrayList<ServerObj> largestServerList2 = new ArrayList<ServerObj>();
+        ServerObj largestServer2 = null;
         try {
             //Get number of servers
             dout.write(("GETS All\n").getBytes());
@@ -19,24 +24,27 @@ public class MyClient {
 
             //Read server details
             dout.write(("OK\n").getBytes());
+
+            // Storing Servers as objects
             for(int a=0;a<numServers;a++){
                 response = din.readLine();
-                serverList.add(response);
-                if(serverList.indexOf(response) == 0){
-                    largestServer = response;
+                serverList2.add(new ServerObj(response));
+                System.out.println("serverList2: " + serverList2.toString());
+                if(serverList2.size() == 1){
+                    largestServer2 = serverList2.get(0);
                 }else{
                     //Compare cpu cores
-                    if(Integer.parseInt(response.split(" ")[4]) > Integer.parseInt(largestServer.split(" ")[4])){
+                    if(serverList2.get(serverList2.size()-1).core > largestServer2.core){
                         System.out.println("New Largest: " + response);
-                        largestServer = response;
+                        largestServer2 = serverList2.get(serverList2.size()-1);
                     }
                 }
                 System.out.println("Resp: " + response);
             }
             // Find all servers with same server type as the largest server
-            for(String server: serverList){
-                if(server.split(" ")[0].equals(largestServer.split(" ")[0])){
-                    largestServerList.add(server);
+            for(ServerObj server: serverList2){
+                if(server.type.equals(largestServer2.type)){
+                    largestServerList2.add(server);
                 }
             }
 
@@ -45,18 +53,44 @@ public class MyClient {
             response = din.readLine();
             System.out.println("Response OK: " + response);
             dout.flush();
+            // Storing Servers as strings
+            // for(int a=0;a<numServers;a++){
+            //     response = din.readLine();
+            //     serverList.add(response);
+            //     if(serverList.indexOf(response) == 0){
+            //         largestServer = response;
+            //     }else{
+            //         //Compare cpu cores
+            //         if(Integer.parseInt(response.split(" ")[4]) > Integer.parseInt(largestServer.split(" ")[4])){
+            //             System.out.println("New Largest: " + response);
+            //             largestServer = response;
+            //         }
+            //     }
+            //     System.out.println("Resp: " + response);
+            // }
+            // // Find all servers with same server type as the largest server
+            // for(String server: serverList){
+            //     if(server.split(" ")[0].equals(largestServer.split(" ")[0])){
+            //         largestServerList.add(server);
+            //     }
+            // }
+
+            // //Confirm Received Server list
+            // dout.write(("OK\n").getBytes());
+            // response = din.readLine();
+            // System.out.println("Response OK: " + response);
+            // dout.flush();
         } catch (Exception e) {
             System.out.println("Failed to get server list");
         }
-        return largestServerList;
+        return largestServerList2;
     }
     public static void main(String[] args) { // TO RUN SERVER USE COMMAND "./ds-server -c ../../configs/sample-configs/ds-sample-config01.xml -v all -n"
         try {
             Socket s = new Socket("localhost", 50000); // Is this declared properly?
             DataInputStream din = new DataInputStream(s.getInputStream());
             DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-            // BufferedReader in = new BufferedReader(new
-            // InputStreamReader(s.getInputStream()));
+
 
             // HELO
             dout.write(("HELO\n").getBytes());
@@ -78,15 +112,16 @@ public class MyClient {
             dout.flush();
 
             //Get List of Largest Servers
-            ArrayList<String> listLargestServers = largestServers(din, dout);
+            ArrayList<ServerObj> listLargestServers = largestServers(din, dout);
             int count = 0;
             String[] job;
-            //Schedule jobs to largest Servers
+
+            //Schedule jobs to largest Servers (Servers as Objects)
             while(!response.contains("NONE")){
                 if(response.contains("JOBN")){
                     job = response.split(" ");
                     System.out.println("Job: " + response);
-                    dout.write(("SCHD " + job[2] + " " + listLargestServers.get(count).split(" ")[0] + " " +listLargestServers.get(count).split(" ")[1] +"\n").getBytes());
+                    dout.write(("SCHD " + job[2] + " " + listLargestServers.get(count).type + " " +listLargestServers.get(count).id +"\n").getBytes());
                     response = din.readLine();
                     System.out.println("Response SCHD: " + response);
                     dout.flush();
@@ -104,71 +139,29 @@ public class MyClient {
                 System.out.println("Response REDY: " + response);
                 dout.flush();
             }
-            
+            //Schedule jobs to largest Servers (Servers as Strings)
             // while(!response.contains("NONE")){
-
-            //     // REDY
-            //     dout.write(("REDY\n").getBytes());
-            //     response = din.readLine();
-            //     System.out.println("Response REDY: " + response);
-            //     dout.flush();
-
-                
-
             //     if(response.contains("JOBN")){
-            //         // GETS
-            //         String job[] = response.split(" ");
-            //         // System.out.println("Job[] " + job[0]);
-            //         // while(!response.contains("DATA")){
-            //             dout.write(("GETS Capable "+job[4]+" "+job[5]+" "+job[6]+"\n").getBytes());
-            //             response = din.readLine();
-            //             System.out.println("Response: " + response);
-            //             dout.flush();
-            //         // }
-                    
-            //         // OK
-            //         ArrayList<String> servers = new ArrayList<String>();
-            //         dout.write(("OK\n").getBytes());
-            //         String data[] = response.split(" ");
-            //         for(int a=0; a<Integer.parseInt(data[1]); a++){
-            //             response = din.readLine();
-            //             System.out.println("A: " + data[1]);
-            //             System.out.println("Response in loop: " + response);
-            //             servers.add(response);
-            //         }
-            //         dout.flush();
-
-            //         //Confirm server names received
-            //         dout.write(("OK\n").getBytes());
-            //         dout.flush();
-
-            //         //Find largest and schedule it
-            //         //Determine largest server based on core count which is 4 for joon 0 and 16 for super-silk
-            //         String largestServer = servers.get(0);
-            //         // System.out.println("Servers Check " + servers.toString());
-
-            //         // Additional code to check active " && serv.split(" ")[2].equals("inactive")"
-            //         for(String serv: servers){
-            //             System.out.println("Contender: " + serv);
-            //             // System.out.println("Server " + serv.split(" ")[0] + " count: "+Integer.parseInt(serv.split(" ")[4])+", Server " + largestServer.split(" ")[0]+ " count: "+Integer.parseInt(largestServer.split(" ")[4]));
-            //             if(Integer.parseInt(serv.split(" ")[4]) > Integer.parseInt(largestServer.split(" ")[4])){
-            //                 System.out.println("New Largest: " + serv);
-            //                 largestServer = serv;
-            //             }
-            //         }
-            //         dout.write(("SCHD " + job[2] + " " + largestServer.split(" ")[0] + " " +largestServer.split(" ")[1] +"\n").getBytes());
+            //         job = response.split(" ");
+            //         System.out.println("Job: " + response);
+            //         dout.write(("SCHD " + job[2] + " " + listLargestServers.get(count).split(" ")[0] + " " +listLargestServers.get(count).split(" ")[1] +"\n").getBytes());
             //         response = din.readLine();
             //         System.out.println("Response SCHD: " + response);
             //         dout.flush();
 
-            //         //Waits for server confirmation
-            //         while(response.contains(".")){
-            //             System.out.println("Ok then");
-            //             response = din.readLine();
+            //         // Increment through server list
+            //         if(count+1 >= listLargestServers.size()){
+            //             count = 0;
+            //         }else{
+            //             count++;
             //         }
             //     }
+            //     // get new Job
+            //     dout.write(("REDY\n").getBytes());
+            //     response = din.readLine();
+            //     System.out.println("Response REDY: " + response);
+            //     dout.flush();
             // }
-
 
             //Exit
             dout.write(("QUIT\n").getBytes());
