@@ -3,6 +3,56 @@ import java.net.*;
 import java.util.ArrayList;
 
 public class MyClient {
+    public static void main(String[] args) { // TO RUN SERVER USE COMMAND "./ds-server -c ../../configs/sample-configs/ds-sample-config01.xml -v all -n"
+        try {
+            Socket s = new Socket("localhost", 50000);
+            DataInputStream din = new DataInputStream(s.getInputStream());
+            DataOutputStream dout = new DataOutputStream(s.getOutputStream());
+            String response = new String();
+
+            // Run handshake protocol
+            response = handshake(din, dout);
+
+            //Get List of Largest Servers
+            ArrayList<ServerObj> listLargestServers = largestServers(din, dout);
+            int count = 0;
+            String[] job;
+
+            //Schedule jobs to largest Servers
+            while(!response.contains("NONE")){
+                if(response.contains("JOBN")){
+                    job = response.split(" ");
+                    System.out.println("Job: " + response);
+                    dout.write(("SCHD " + job[2] + " " + listLargestServers.get(count).type() + " " +listLargestServers.get(count).id() +"\n").getBytes());
+                    response = din.readLine();
+                    System.out.println("Response SCHD: " + response);
+                    dout.flush();
+
+                    // Increment through server list
+                    if(count+1 >= listLargestServers.size()){
+                        count = 0;
+                    }else{
+                        count++;
+                    }
+                }
+                // get new Job
+                dout.write(("REDY\n").getBytes());
+                response = din.readLine();
+                System.out.println("Response REDY: " + response);
+                dout.flush();
+            }
+
+            //Exit
+            dout.write(("QUIT\n").getBytes());
+            response = din.readLine();
+            System.out.println("Response: " + response);
+            dout.close();
+            s.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
     public static String handshake(DataInputStream din, DataOutputStream dout){
         String response = new String();
         try {
@@ -55,7 +105,7 @@ public class MyClient {
                     largestServer2 = serverList2.get(0);
                 }else{
                     //Compare cpu cores
-                    if(serverList2.get(serverList2.size()-1).core > largestServer2.core){
+                    if(serverList2.get(serverList2.size()-1).core() > largestServer2.core()){
                         System.out.println("New Largest: " + response);
                         largestServer2 = serverList2.get(serverList2.size()-1);
                     }
@@ -64,7 +114,7 @@ public class MyClient {
             }
             // Find all servers with same server type as the largest server
             for(ServerObj server: serverList2){
-                if(server.type.equals(largestServer2.type)){
+                if(server.type().equals(largestServer2.type())){
                     largestServerList2.add(server);
                 }
             }
@@ -78,54 +128,5 @@ public class MyClient {
             System.out.println("Failed to get server list");
         }
         return largestServerList2;
-    }
-    public static void main(String[] args) { // TO RUN SERVER USE COMMAND "./ds-server -c ../../configs/sample-configs/ds-sample-config01.xml -v all -n"
-        try {
-            Socket s = new Socket("localhost", 50000);
-            DataInputStream din = new DataInputStream(s.getInputStream());
-            DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-            String response = new String();
-
-            // Run handshake protocol
-            response = handshake(din, dout);
-
-            //Get List of Largest Servers
-            ArrayList<ServerObj> listLargestServers = largestServers(din, dout);
-            int count = 0;
-            String[] job;
-
-            //Schedule jobs to largest Servers
-            while(!response.contains("NONE")){
-                if(response.contains("JOBN")){
-                    job = response.split(" ");
-                    System.out.println("Job: " + response);
-                    dout.write(("SCHD " + job[2] + " " + listLargestServers.get(count).type + " " +listLargestServers.get(count).id +"\n").getBytes());
-                    response = din.readLine();
-                    System.out.println("Response SCHD: " + response);
-                    dout.flush();
-
-                    // Increment through server list
-                    if(count+1 >= listLargestServers.size()){
-                        count = 0;
-                    }else{
-                        count++;
-                    }
-                }
-                // get new Job
-                dout.write(("REDY\n").getBytes());
-                response = din.readLine();
-                System.out.println("Response REDY: " + response);
-                dout.flush();
-            }
-
-            //Exit
-            dout.write(("QUIT\n").getBytes());
-            response = din.readLine();
-            System.out.println("Response: " + response);
-            dout.close();
-            s.close();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
     }
 }
