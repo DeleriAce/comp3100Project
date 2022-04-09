@@ -4,14 +4,6 @@ public class ServerObj{
 
     public ServerObj(String server){
         String[] s = server.split(" ");
-        // serverType = s[0];
-        // serverID = Integer.parseInt(s[1]);
-        // serverState = s[2];
-        // serverCurrStartTime = Integer.parseInt(s[3]);
-        // serverCore = Integer.parseInt(s[4]);
-        // serverMemory = Integer.parseInt(s[5]);
-        // serverDisk = Integer.parseInt(s[6]);
-
         setType(s[0]);
         setID(Integer.parseInt(s[1]));
         setState(s[2]);
