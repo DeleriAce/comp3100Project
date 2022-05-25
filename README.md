@@ -14,3 +14,12 @@ A class that creates objects that store all the relevant data from a Server.
 MyServer.java
 Creates a server and establishes a connection with the client
 #Note doesn't really work at this stage and not much work has been done on it
+
+MyClientFC.java
+A client class that does the following:
+1. Performs handshake with the server
+2. Loops until it has scheduled all jobs according to the First Capable (FC) Algorithm
+5. Closes the connection with the server
+
+MyClientPt2.java
+A client class for Stage 2 of the project

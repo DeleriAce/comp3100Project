@@ -13,8 +13,9 @@ public class MyClient {
             // Run handshake protocol
             response = handshake(din, dout);
 
-            //Get List of Largest Servers
-            ArrayList<ServerObj> listLargestServers = largestServers(din, dout);
+            //Get List of LRR Servers to be used
+            ArrayList<ServerObj> listServersUsed = largestServers(din, dout);
+            
             int count = 0;
             String[] job;
 
@@ -23,13 +24,14 @@ public class MyClient {
                 if(response.contains("JOBN")){
                     job = response.split(" ");
                     System.out.println("Job: " + response);
-                    dout.write(("SCHD " + job[2] + " " + listLargestServers.get(count).type() + " " +listLargestServers.get(count).id() +"\n").getBytes());
+                    fcServer(din, dout, job[4], job[5]);
+                    dout.write(("SCHD " + job[2] + " " + listServersUsed.get(count).type() + " " +listServersUsed.get(count).id() +"\n").getBytes());
                     response = din.readLine();
                     System.out.println("Response SCHD: " + response);
                     dout.flush();
 
                     // Increment through server list
-                    if(count+1 >= listLargestServers.size()){
+                    if(count+1 >= listServersUsed.size()){
                         count = 0;
                     }else{
                         count++;
@@ -77,6 +79,18 @@ public class MyClient {
             System.out.println("Failed Handshake Protocol");
         }
         return response;
+    }
+
+    public static void fcServer(DataInputStream din, DataOutputStream dout, String core, String memory){
+        String response = "";
+        try{
+            dout.write(("GETS Capable " + core + " " + memory + "\n").getBytes());
+            response = din.readLine();
+            System.out.println("fc Response: "+ response);
+        }catch (Exception e) {
+            System.out.println("Failed fcServer function");
+        }
+
     }
 
     public static ArrayList<ServerObj> largestServers(DataInputStream din, DataOutputStream dout){
