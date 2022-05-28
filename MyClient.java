@@ -23,11 +23,9 @@ public class MyClient {
             while(!response.contains("NONE")){
                 if(response.contains("JOBN")){
                     job = response.split(" ");
-                    System.out.println("Job: " + response);
                     fcServer(din, dout, job[4], job[5]);
                     dout.write(("SCHD " + job[2] + " " + listServersUsed.get(count).type() + " " +listServersUsed.get(count).id() +"\n").getBytes());
                     response = din.readLine();
-                    System.out.println("Response SCHD: " + response);
                     dout.flush();
 
                     // Increment through server list
@@ -40,14 +38,12 @@ public class MyClient {
                 // get new Job
                 dout.write(("REDY\n").getBytes());
                 response = din.readLine();
-                System.out.println("Response REDY: " + response);
                 dout.flush();
             }
 
             //Exit
             dout.write(("QUIT\n").getBytes());
             response = din.readLine();
-            System.out.println("Response: " + response);
             dout.close();
             s.close();
         } catch (Exception e) {
@@ -62,18 +58,15 @@ public class MyClient {
             dout.write(("HELO\n").getBytes());
             response = din.readLine();
             dout.flush();
-            System.out.println("Response: " + response);
             // Auth
             String username = System.getProperty("user.name");
             dout.write(("AUTH " + username+"\n").getBytes());
             response = din.readLine();
-            System.out.println("Response: " + response);
             dout.flush();
 
             // REDY
             dout.write(("REDY\n").getBytes());
             response = din.readLine();
-            System.out.println("Response REDY: " + response);
             dout.flush();
         } catch (Exception e) {
             System.out.println("Failed Handshake Protocol");
@@ -86,7 +79,6 @@ public class MyClient {
         try{
             dout.write(("GETS Capable " + core + " " + memory + "\n").getBytes());
             response = din.readLine();
-            System.out.println("fc Response: "+ response);
         }catch (Exception e) {
             System.out.println("Failed fcServer function");
         }
@@ -105,7 +97,6 @@ public class MyClient {
             dout.write(("GETS All\n").getBytes());
             response = din.readLine();
             numServers = Integer.parseInt(response.split(" ")[1]);
-            System.out.println("Resp GETS: " + response);
 
             //Read server details
             dout.write(("OK\n").getBytes());
@@ -114,17 +105,14 @@ public class MyClient {
             for(int a=0;a<numServers;a++){
                 response = din.readLine();
                 serverList2.add(new ServerObj(response));
-                System.out.println("serverList2: " + serverList2.toString());
                 if(serverList2.size() == 1){
                     largestServer2 = serverList2.get(0);
                 }else{
                     //Compare cpu cores
                     if(serverList2.get(serverList2.size()-1).core() > largestServer2.core()){
-                        System.out.println("New Largest: " + response);
                         largestServer2 = serverList2.get(serverList2.size()-1);
                     }
                 }
-                System.out.println("Resp: " + response);
             }
             // Find all servers with same server type as the largest server
             for(ServerObj server: serverList2){
@@ -136,7 +124,6 @@ public class MyClient {
             //Confirm Received Server list
             dout.write(("OK\n").getBytes());
             response = din.readLine();
-            System.out.println("Response OK: " + response);
             dout.flush();
         } catch (Exception e) {
             System.out.println("Failed to get server list");
