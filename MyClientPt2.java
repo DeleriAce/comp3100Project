@@ -82,7 +82,6 @@ public class MyClientPt2 {
 
                     // Get All servers
                     dout.write(("GETS All\n").getBytes());
-                    // dout.write(("GETS Capable " + job[4] + " " + job[5] + " " + job[6] + "\n").getBytes());
                     response = din.readLine();
                     num_servers = Integer.parseInt(response.split(" ")[1]);
                     dout.flush();
