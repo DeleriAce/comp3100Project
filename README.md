@@ -1,6 +1,6 @@
 # Comp3100 Project by Kurtis Fraser (45967407)
 
-# MyClient.java
+# MyClient.java (Client for Stage 1)
 A client class that does the following:
 1. Performs handshake with the server
 2. Gets a list of servers
@@ -21,5 +21,7 @@ A client class that does the following:
 2. Loops until it has scheduled all jobs according to the First Capable (FC) Algorithm
 5. Closes the connection with the server
 
-# MyClientPt2.java (Unused)
-A client class rework, wasn't able to make it better than LRR Algorithm so not using it.
+# MyClientPt2.java (Client for Stage 2)
+A client class rework to support trialling multiple different algorithm functions.
+
+Most successful algorithm was a modified Best Fit algorithm that starts searching for the first capable server halfway through the server list.
